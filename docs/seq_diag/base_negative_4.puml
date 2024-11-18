@@ -1,0 +1,65 @@
+@startuml base_negative_4
+title Базовый сценарий поездки с негативным сценарием 4
+autonumber
+actor "Клиент" as client
+participant "Мобильное\nприложение\nклиента" as mobile
+participant "Система\nуправления\nпарком автомобилей" as manage_sys
+participant "Iot система" as iot #Red
+participant "Электронный блок" as eblocks
+participant "Модуль\nтехнической\nготовности" as tech_ready
+participant "Двери" as doors
+participant "Модуль\nуправления\nдвигателем" as engine
+participant "Модуль\nнавигации" as gps
+participant "Система оплаты\nуслуг" as bank
+group контракт на поездку
+    client -> mobile: выбор и запрос авто
+    mobile -> manage_sys: запрос авто
+    manage_sys -> iot: опрос авто
+    iot -[#red]-> iot: подмена команды
+    iot -[#red]-> manage_sys: недостоверный статус
+    manage_sys -> mobile: список авто и тарифы
+    mobile <- mobile: выбор авто\nи тарифа
+    manage_sys -> bank: создание предоплаты
+    bank -> manage_sys: счёт на предоплату
+    manage_sys -> mobile: счёт на предоплату
+    mobile -> client: счёт на предоплату
+    client -> mobile: оплата услуг
+    mobile -> bank: оплата услуг
+    bank --> client: подтверждение
+    bank -> manage_sys: услуги оплачены
+    manage_sys -> mobile: услуги оплачены
+    mobile -> iot: запрос доступа
+    iot -> manage_sys: запрос доступа и тарифного плана
+    manage_sys -> manage_sys: проверка профиля\nи статуса оплаты
+    manage_sys -> iot: разрешение доступа\nтарифный план
+    iot -> eblocks: открыть двери
+    eblocks -> doors: открыть двери
+    doors -> eblocks: двери открыты
+    eblocks -> iot: двери октрыты
+    iot -> eblocks: разблокировать двигатель
+    eblocks -> engine: разблокировать двигатель
+    engine -> eblocks: двигатель разблокирован
+    eblocks -> iot: двигатель разблокирован
+    iot -> mobile: разрешение доступа
+end
+group поездка
+    client -> iot: запрос оплачиваемой услуги
+    iot -> manage_sys: проверка оплаты\nоказание услуги
+    manage_sys -> iot: подтверждение оплаты\nи оказания услуги
+    iot -[#red]-> client: выдан доступ без оплаты
+    iot -[#red]-> iot: подмена команды
+    iot -[#red]-> manage_sys: недостоверная телеметрия
+end
+group завершение поездки и возврат авто
+    client -> iot: возврат авто
+    iot -[#red]-> iot: подмена команды
+    iot -[#red]-> manage_sys: возврат авто\nсводка по поездке\nно авто все ещё работает
+    manage_sys -> bank: создание\nфинального счёта
+    bank -> mobile: финальный счёт
+    mobile -> client: финальный счёт
+    client -> mobile: оплата
+    mobile -> bank: оплата
+    bank -> mobile: финальный чек\nпо услуге
+    mobile -> client: финальный чек\nпо услуге
+end
+@enduml

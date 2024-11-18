@@ -1,0 +1,415 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.0
+    container_name: zookeeper
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+    ports:
+     - "2181:2181"
+
+  broker:
+    image: confluentinc/cp-kafka:7.2.0
+    container_name: broker
+    ports:
+      - "9092:9092"
+    expose:
+     - "29092"
+    depends_on:
+      - zookeeper
+    env_file: ./cars/modules/broker/config/.env
+
+  access_validator:
+    build: ./cars/modules/access_validator
+    image: access_validator
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: access_validator
+    environment:
+      - MODULE_NAME=access_validator
+    volumes:
+      - ./cars/shared:/shared
+
+  command_validator:
+    build: ./cars/modules/command_validator
+    image: command_validator
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: command_validator
+    environment:
+      - MODULE_NAME=command_validator
+      # - MODULE_PORT=6064
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6064:6064
+
+  conn_with_manag_sys:
+    build: ./cars/modules/conn_with_manag_sys
+    image: conn_with_manag_sys
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: conn_with_manag_sys
+    environment:
+      - MODULE_NAME=conn_with_manag_sys
+    #  - MODULE_PORT=6065
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6065:6065
+
+  conn_with_mob_app:
+    build: ./cars/modules/conn_with_mob_app
+    image: conn_with_mob_app
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: com-mobile
+    environment:
+      - MODULE_NAME=com-mobile
+    #  - MODULE_PORT=6066
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6066:6066
+
+  data_validator:
+    build: ./cars/modules/data_validator
+    image: data_validator
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: data_validator
+    environment:
+      - MODULE_NAME=data_validator
+    #  - MODULE_PORT=6067
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6067:6067
+
+  doors_controller:
+    build: ./cars/modules/doors_controller
+    image: doors_controller
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: doors_controller
+    environment:
+      - MODULE_NAME=doors_controller
+    #  - MODULE_PORT=6069
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6069:6069
+
+  eblocks:
+    build: ./cars/modules/eblocks
+    image: eblocks
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: eblocks
+    environment:
+      - MODULE_NAME=eblocks
+    #  - MODULE_PORT=6070
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6070:6070
+
+  engine:
+    build: ./cars/modules/engine
+    image: engine
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: engine
+    environment:
+      - MODULE_NAME=engine
+    #  - MODULE_PORT=6072
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6072:6072
+
+  engine_controller:
+    build: ./cars/modules/engine_controller
+    image: engine_controller
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: engine_controller
+    environment:
+      - MODULE_NAME=engine_controller
+    #  - MODULE_PORT=6072
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6072:6072
+
+  fuel_tank:
+    build: ./cars/modules/fuel_tank
+    image: fuel_tank
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: fuel_tank
+    environment:
+      - MODULE_NAME=fuel_tank
+    #  - MODULE_PORT=6072
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6072:6072
+
+  gps:
+    build: ./cars/modules/gps
+    image: gps
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: gps
+    environment:
+      - MODULE_NAME=gps
+    #  - MODULE_PORT=6072
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6072:6072
+
+  headlights:
+    build: ./cars/modules/headlights
+    image: headlights
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: headlights
+    environment:
+      - MODULE_NAME=headlights
+    #  - MODULE_PORT=6072
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6072:6072
+
+  ic:
+    build: ./cars/modules/ic
+    image: ic
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: ic
+    environment:
+      - MODULE_NAME=ic
+    #  - MODULE_PORT=6072
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6072:6072
+
+  locking_device:
+    build: ./cars/modules/locking_device
+    image: locking_device
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: locking_device
+    environment:
+      - MODULE_NAME=locking_device
+    #  - MODULE_PORT=6072
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6072:6072
+
+  navigation_handler:
+    build: ./cars/modules/navigation_handler
+    image: navigation_handler
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: navigation_handler
+    environment:
+      - MODULE_NAME=navigation_handler
+    #  - MODULE_PORT=6072
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6072:6072
+
+  payment_validator:
+    build: ./cars/modules/payment_validator
+    image: payment_validator
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: payment_validator
+    environment:
+      - MODULE_NAME=payment_validator
+    #  - MODULE_PORT=6072
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6072:6072
+
+  tire_sensors:
+    build: ./cars/modules/tire_sensors
+    image: tire_sensors
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: tire_sensors
+    environment:
+      - MODULE_NAME=tire_sensors
+    #  - MODULE_PORT=6072
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6072:6072
+
+  vehicle_braking:
+    build: ./cars/modules/vehicle_braking
+    image: vehicle_braking
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: vehicle_braking
+    environment:
+      - MODULE_NAME=vehicle_braking
+    #  - MODULE_PORT=6072
+    volumes:
+      - ./cars/shared:/shared
+    #ports:
+    #  - 6072:6072
+
+  management_system:
+    build: ./management-system/
+    image: management-system
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up...'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: management-system
+    environment:
+      - MODULE_NAME=management-system
+    volumes:
+      - ./management-system/shared:/shared
+    ports:
+      - 8003:8000
+
+  payment_system:
+    build: ./payment-system/
+    image: payment-system
+    entrypoint: 
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: payment-system
+    environment:
+      - MODULE_NAME=payment-system
+    volumes:
+      - ./management-system/shared:/shared
+    ports:
+      - 8000:8000
+    
+  mobile_client:
+    build: ./mobile-client/
+    image: mobile-client
+    entrypoint: 
+      - bash
+      - -c
+      - |
+        echo 'Giving Kafka a bit of time to start up…'
+        sleep 20
+        venv/bin/python start.py /shared/config.ini
+    container_name: mobile-client
+    environment:
+      - MODULE_NAME=mobile-client
+    volumes:
+      - ./management-system/shared:/shared
+    ports:
+      - 8002:8000

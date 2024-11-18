@@ -1,0 +1,246 @@
+@startuml test_sec_negative_5
+title тест негативный сценарий 5
+autonumber
+actor "Клиент" as client
+participant "Мобильное\nприложение\nклиента" as mobile
+participant "Система\nуправления\nпарком автомобилей" as manage_sys
+participant "conn\nwith\nmanag\nsys" as conn_with_manag_sys
+participant "conn\nwith\nmob\napp" as conn_with_mob_app
+participant "encoder" as encoder
+participant "decoder" as decoder
+participant "command\nvalidator" as command_validator #Green
+participant "access\nvalidator" as access_validator #Green
+participant "payment\nvalidator" as payment_validator
+participant "date\nvalidator" as data_validator
+participant "IC" as ic
+participant "eblocks" as eblocks #Red
+participant "tire\nsensors" as tire_sensors
+participant "vehicle\nbreaking" as vehicle_braking
+participant "fuel\ntank" as fuel_tank
+participant "headlights" as headlights
+participant "engine\ncontroller" as engine_controller
+participant "engine" as engine
+participant "doors\ncontroller" as doors_controller
+participant "locking\ndevice" as locking_device
+participant "navigation\nhandler" as navigation_handler
+participant "gps" as gps
+participant "Система оплаты\nуслуг" as bank
+group контракт на поездку
+    client -> mobile: выбори\nзапрос авто
+    mobile -> manage_sys: запрос\nавто
+    manage_sys -> decoder: опрос\nавто
+    decoder -> conn_with_manag_sys: опрос\nавто
+    conn_with_manag_sys -> eblocks: запрос телеметрии
+    tire_sensors -> eblocks: статус
+    vehicle_braking -> eblocks: статус
+    fuel_tank -> eblocks: статус
+    headlights -> eblocks: статус
+    engine -> engine_controller: статус
+    engine_controller -> eblocks: статус
+    doors_controller -> eblocks: статус
+    gps -> navigation_handler: статус
+    navigation_handler -> eblocks: статус
+    eblocks -> data_validator: отправка\nтеллеметрии
+    mobile -> conn_with_mob_app: отправка\nтелеметрии с мобильного
+    conn_with_mob_app -> decoder: отправка\nтелеметрии с мобильного
+    decoder -> data_validator: отправка\nтелеметрии с мобильного
+    data_validator -> data_validator: сверка\телеметрии
+    data_validator -> ic: телеметрия\nсовпадает
+    eblocks -> command_validator: проверка\nкоманды
+    command_validator -> access_validator: проверка\nдоступа
+    access_validator <- access_validator: расшифровка и\nсверка\nтокена
+    access_validator -> ic: доступ разрешён\nкоманда проверена
+    ic -> encoder: статус автомобиля
+    note left: если теллеметрия не совпадает или вызывает подозрение то возвращает в статусе неготовность
+    encoder -> conn_with_manag_sys: статус автомобиля
+    conn_with_manag_sys -> manage_sys: статус автомобиля
+    manage_sys -> mobile: список авто и тарифы
+    mobile <- mobile: выбор авто\nи тарифа
+    manage_sys -> bank: создание предоплаты
+    bank -> manage_sys: счёт на предоплату
+    manage_sys -> mobile: счёт на предоплату
+    mobile -> client: счёт на предоплату
+    client -> mobile: оплата услуг
+    mobile -> bank: оплата услуг
+    bank --> client: подтверждение
+    bank -> manage_sys: услуги оплачены
+    manage_sys -> mobile: услуги оплачены
+    mobile -> conn_with_mob_app: запрос доступа
+    conn_with_mob_app -> decoder: запрос доступа
+    decoder -> eblocks: запрос доступа
+    eblocks -> command_validator: проверка\nкоманды
+    command_validator -> access_validator: проверка\nдоступа
+    access_validator -> encoder: запрос\nтокена
+    encoder -> conn_with_manag_sys: запрос\nтокена 
+    conn_with_manag_sys -> manage_sys: запрос\nтокена
+    manage_sys -> conn_with_manag_sys: токен
+    conn_with_manag_sys -> decoder: токен
+    decoder -> access_validator: токен
+    access_validator <- access_validator: расшифровка и\nсверка\nтокенов
+    command_validator -> payment_validator: проверка\nоплаты
+    payment_validator -> encoder: запрос\nподтверждения\nоплаты
+    encoder -> conn_with_manag_sys: запрос\nподтверждения\nоплаты
+    conn_with_manag_sys -> manage_sys: запрос\nподтверждения\nоплаты
+    manage_sys -> conn_with_manag_sys: токен подтверждение\nоплаты
+    conn_with_manag_sys -> decoder: токен подтверждение\nоплаты
+    decoder -> payment_validator: токен подтверждение\nоплаты
+    payment_validator <- payment_validator: расшифровка и\nсверка\nтокенов
+    access_validator -> ic: доступ разрешён\nкоманда проверена
+    payment_validator -> ic: оплата\nпроверена
+    note left: не разблокирует двери, если оплата не подтверждена
+    ic -> encoder: запрос доступа и\nтарифного плана
+    note left: если не прошла проверка на доступ \n или проверка оплаты \n или проверка комманды \n то сигнализирует в систему управления парком
+    encoder -> conn_with_manag_sys: запрос доступа и\nтарифного плана
+    conn_with_manag_sys -> manage_sys: запрос доступа и\nтарифного плана
+    manage_sys -> manage_sys: проверка профиля\nи статуса оплаты
+    manage_sys -> conn_with_manag_sys: разрешение доступа\nтарифный план
+    conn_with_manag_sys -> decoder: разрешение доступа\nтарифный план
+    decoder -> eblocks: разрешение доступа\nтарифный план
+    eblocks -> command_validator: проверка\nкоманды
+    command_validator -> access_validator: проверка\nдоступа
+    access_validator <- access_validator: расшифровка и\nсверка\nтокена
+    access_validator -> ic: доступ разрешён\nкоманда проверена
+    ic -> doors_controller: открыть\nдвери
+    doors_controller -> locking_device: открыть\nдвери
+    doors_controller -> ic: двери\nоткрыты
+    ic -> engine_controller: разблокировать\nдвигатель
+    engine_controller -> ic: двигатель\nразблокирован
+    ic -> conn_with_mob_app: разрешение\nдоступа
+    note left: если есть подозрения в доступе или в команде блокирует двери и/или двигатель
+    conn_with_mob_app -> encoder: разрешение\nдоступа
+    encoder -> mobile: разрешение доступа
+end
+group поездка
+    client -> mobile: запрос\nоплачиваемой услуги
+    mobile -> conn_with_mob_app: запрос\nоплачиваемой услуги
+    conn_with_mob_app -> decoder: запрос\nоплачиваемой услуги
+    decoder -> eblocks: запрос\nоплачиваемой услуги
+    eblocks -> command_validator: проверка\nкоманды
+    command_validator -> access_validator: проверка\nдоступа
+    access_validator -> encoder: запрос\nтокена
+    encoder -> conn_with_manag_sys: запрос\nтокена 
+    conn_with_manag_sys -> manage_sys: запрос\nтокена
+    manage_sys -> conn_with_manag_sys: токен
+    conn_with_manag_sys -> decoder: токен
+    decoder -> access_validator: токен
+    access_validator <- access_validator: расшифровка и\nсверка\nтокенов
+    command_validator -> payment_validator: проверка\nоплаты
+    payment_validator -> encoder: запрос\nподтверждения\nоплаты
+    encoder -> conn_with_manag_sys: запрос\nподтверждения\nоплаты
+    conn_with_manag_sys -> manage_sys: запрос\nподтверждения\nоплаты
+    manage_sys -> conn_with_manag_sys: токен подтверждение\nоплаты
+    conn_with_manag_sys -> decoder: токен подтверждение\nоплаты
+    decoder -> payment_validator: токен подтверждение\nоплаты
+    payment_validator <- payment_validator: расшифровка и\nсверка\nтокенов
+    access_validator -> ic: доступ разрешён\nкоманда проверена
+    payment_validator -> ic: оплата\nпроверена
+    ic -> ic: выполнение\nуслуги
+    ic -> eblocks: стастус\nвыполнения\nзапроса на услугу
+    eblocks -> command_validator: проверка\nкоманды
+    command_validator -> access_validator: проверка\nдоступа
+    access_validator -> encoder: запрос\nтокена
+    encoder -> conn_with_manag_sys: запрос\nтокена 
+    conn_with_manag_sys -> manage_sys: запрос\nтокена
+    manage_sys -> conn_with_manag_sys: токен
+    conn_with_manag_sys -> decoder: токен
+    decoder -> access_validator: токен
+    access_validator <- access_validator: расшифровка и\nсверка\nтокенов
+    access_validator -> ic: доступ разрешён\nкоманда проверена
+    ic -> encoder: стастус\nвыполнения\nзапроса на услугу
+    encoder -> conn_with_mob_app: стастус\nвыполнения\nзапроса на услугу
+    ic -> eblocks: запрос телеметрии
+    tire_sensors -> eblocks: статус
+    vehicle_braking -> eblocks: статус
+    fuel_tank -> eblocks: статус
+    headlights -> eblocks: статус
+    engine -> engine_controller: статус
+    engine_controller -> eblocks: статус
+    doors_controller -> eblocks: статус
+    gps -> navigation_handler: статус
+    navigation_handler -> eblocks: статус
+    eblocks -> data_validator: отправка\nтеллеметрии
+    mobile -> decoder: отправка\nтелеметрии с мобильного
+    decoder -> conn_with_mob_app: отправка\nтелеметрии с мобильного
+    conn_with_mob_app -> data_validator: отправка\nтелеметрии с мобильного
+    data_validator -> data_validator: сверка\телеметрии
+    data_validator -> ic: телеметрия\nсовпадает
+    note left: если data_validator не подтвердил корректность данных \nили сомневается в исправности автомобиля, \nто присылает уведомления о подтверждении данных клиенту,\nесли не соблюдается скорость или район поездки, то предупреждает 3 раза,\n на 4 блокирует возможность разгоняться и отправляет уведомлени в систему паркинга
+    ic -> encoder: статус автомобиля
+    encoder -> conn_with_manag_sys: статус автомобиля
+    conn_with_manag_sys -> manage_sys: статус автомобиля
+end
+group завершение поездки и возврат авто
+    client -> mobile: возврат авто
+    mobile -> conn_with_mob_app: возврат авто
+    conn_with_mob_app -> decoder: возврат авто
+    decoder -> eblocks: возврат авто
+    eblocks -> command_validator: проверка\nкоманды
+    command_validator -> access_validator: проверка\nдоступа
+    access_validator -> encoder: запрос\nтокена
+    encoder -> conn_with_manag_sys: запрос\nтокена 
+    conn_with_manag_sys -> manage_sys: запрос\nтокена
+    manage_sys -> conn_with_manag_sys: токен
+    conn_with_manag_sys -> decoder: токен
+    decoder -> access_validator: токен
+    access_validator <- access_validator: расшифровка и\nсверка\nтокенов
+    access_validator -> ic: доступ разрешён\nкоманда проверена
+    ic -> eblocks: запрос телеметрии
+    eblocks -[#red]-> eblocks: подмена команды
+    eblocks -[#red]-> data_validator: отправка недостоверной\nтеллеметрии
+    eblocks -[#red]-> command_validator: продление аренды
+    command_validator -[#green]-> command_validator: проверка команды,\nподозрительное действие
+    command_validator -[#green]-> access_validator: проверка\nдоступа
+    access_validator -[#green]-> encoder: запрос\nтокена
+    encoder -[#green]-> conn_with_manag_sys: запрос\nтокена 
+    conn_with_manag_sys -[#green]-> manage_sys: запрос\nтокена
+    manage_sys -[#green]-> conn_with_manag_sys: токен
+    conn_with_manag_sys -[#green]-> decoder: токен
+    decoder -[#green]-> access_validator: токен
+    access_validator <--[#green] access_validator: расшифровка и\nсверка\nтокенов
+    access_validator -[#green]-> ic: доступ запрещён\nкоманда подозиртельная
+    mobile -> decoder: отправка\nтелеметрии с мобильного
+    decoder -> conn_with_mob_app: отправка\nтелеметрии с мобильного
+    conn_with_mob_app -> data_validator: отправка\nтелеметрии с мобильного
+    data_validator -> data_validator: сверка\телеметрии
+    data_validator -> ic: телеметрия\nсовпадает
+    ic -[#green]-> encoder: сообщение о\nподозрительном действии\nне совпадении команд (неисправность)
+    encoder -[#green]-> conn_with_manag_sys: сообщение о\nподозрительном действии\nне совпадении команд (неисправность)
+    conn_with_manag_sys -[#green]-> manage_sys: сообщение о\nподозрительном действии\nне совпадении команд (неисправность)
+    ic -[#green]-> encoder: сообщение о неисправности\n и скором принудительном завершении
+    encoder -[#green]-> conn_with_mob_app: сообщение о неисправности\n и скором принудительном завершении
+    conn_with_mob_app -[#green]-> mobile: сообщение о неисправности\n и скором принудительном завершении
+    mobile -[#green]-> client: сообщение о неисправности\n и скором принудительном завершении
+    manage_sys -> bank: создание\nфинального счёта
+    bank -> mobile: финальный счёт
+    mobile -> client: финальный счёт
+    client -> mobile: оплата
+    mobile -> bank: оплата
+    bank -> mobile: финальный чек\nпо услуге
+    mobile -> client: финальный чек\nпо услуге
+    ic -> eblocks: возврат авто
+    eblocks -> command_validator: проверка\nкоманды
+    command_validator -> access_validator: проверка\nдоступа
+    access_validator -> encoder: запрос\nтокена
+    encoder -> conn_with_manag_sys: запрос\nтокена 
+    conn_with_manag_sys -> manage_sys: запрос\nтокена
+    manage_sys -> conn_with_manag_sys: токен
+    conn_with_manag_sys -> decoder: токен
+    decoder -> access_validator: токен
+    access_validator <- access_validator: расшифровка и\nсверка\nтокенов
+    command_validator -> payment_validator: проверка\nоплаты
+    payment_validator -> encoder: запрос\nподтверждения\nоплаты
+    encoder -> conn_with_manag_sys: запрос\nподтверждения\nоплаты
+    conn_with_manag_sys -> manage_sys: запрос\nподтверждения\nоплаты
+    manage_sys -> conn_with_manag_sys: токен подтверждение\nоплаты
+    conn_with_manag_sys -> decoder: токен подтверждение\nоплаты
+    decoder -> payment_validator: токен подтверждение\nоплаты
+    payment_validator <- payment_validator: расшифровка и\nсверка\nтокенов
+    access_validator -> ic: доступ разрешён\nкоманда проверена
+    payment_validator -> ic: оплата\nпроверена
+    ic -> engine_controller: заблокировать двигатель
+    engine_controller -> ic: двигатель заблокирован
+    ic -> doors_controller: закрыть двери
+    doors_controller -> locking_device: закрыть двери
+    doors_controller -> ic: двери закрыты
+end
+@enduml

@@ -1,0 +1,88 @@
+@startuml base_negative_3
+title Базовый сценарий поездки с негативным сценарием 3
+autonumber
+actor "Клиент" as client
+participant "Мобильное\nприложение\nклиента" as mobile
+participant "Система\nуправления\nпарком автомобилей" as manage_sys
+participant "Iot система" as iot
+participant "Электронный блок" as eblocks
+participant "Модуль\nтехнической\nготовности" as tech_ready #Red
+participant "Двери" as doors
+participant "Модуль\nуправления\nдвигателем" as engine
+participant "Модуль\nнавигации" as gps
+participant "Система оплаты\nуслуг" as bank
+group контракт на поездку
+    client -> mobile: выбор и запрос авто
+    mobile -> manage_sys: запрос авто
+    manage_sys -> iot: опрос авто
+    iot -> eblocks: запрос телеметрии
+    tech_ready -[#red]--> eblocks: игнорирование неисправности
+    doors -> eblocks: статус
+    engine -> eblocks: статус
+    gps -> eblocks: статус
+    eblocks -> iot: телеметрия
+    iot -> manage_sys: статусы автомобилей
+    manage_sys -> mobile: список авто и тарифы
+    mobile <- mobile: выбор авто\nи тарифа
+    manage_sys -> bank: создание предоплаты
+    bank -> manage_sys: счёт на предоплату
+    manage_sys -> mobile: счёт на предоплату
+    mobile -> client: счёт на предоплату
+    client -> mobile: оплата услуг
+    mobile -> bank: оплата услуг
+    bank --> client: подтверждение
+    bank -> manage_sys: услуги оплачены
+    manage_sys -> mobile: услуги оплачены
+    mobile -> iot: запрос доступа
+    iot -> manage_sys: запрос доступа и тарифного плана
+    manage_sys -> manage_sys: проверка профиля\nи статуса оплаты
+    manage_sys -> iot: разрешение доступа\nтарифный план
+    iot -> eblocks: открыть двери
+    eblocks -> doors: открыть двери
+    doors -> eblocks: двери открыты
+    eblocks -> iot: двери открыты
+    iot -> eblocks: разблокировать двигатель
+    eblocks -> engine: разблокировать двигатель
+    engine -> eblocks: двигатель разблокирован
+    eblocks -> iot: двигатель разблокирован
+    iot -> mobile: разрешение доступа
+end
+group поездка
+    client -> iot: запрос оплачиваемой услуги
+    iot -> manage_sys: проверка оплаты\nоказание услуги
+    manage_sys -> iot: подтверждение оплаты\nи оказания услуги
+    iot -> client: статус выполнения запроса на услугу
+    iot -> eblocks: запрос телеметрии
+    tech_ready -> eblocks: статус
+    doors -> eblocks: статус
+    engine -> eblocks: статус
+    gps -> eblocks: статус
+    eblocks -> iot: телеметрия
+    iot -> manage_sys: телеметрия
+end
+group завершение поездки и возврат авто
+    client -> iot: возврат авто
+    iot -> eblocks: запрос телеметрии
+    tech_ready -> eblocks: статус
+    doors -> eblocks: статус
+    engine -> eblocks: статус
+    gps -> eblocks: статус
+    eblocks -> iot: телеметрия
+    iot -> eblocks: заблокировать двигатель
+    eblocks -> engine: заблокировать двигатель
+    engine -> eblocks: двигатель заблокирован
+    eblocks -> iot: двигатель заблокирован
+    iot -> eblocks: закрыть двери
+    eblocks -> doors: закрыть двери
+    doors -> eblocks: двери закрыты
+    eblocks -> iot: двери закрыты
+    iot -> manage_sys: возврат авто\nсводка по поездке
+    manage_sys -> bank: создание\nфинального счёта
+    bank -> mobile: финальный счёт
+    mobile -> client: финальный счёт
+    client -> mobile: оплата
+    mobile -> bank: оплата
+    bank -> mobile: финальный чек\nпо услуге
+    mobile -> client: финальный чек\nпо услуге
+end
+@enduml
